@@ -12,13 +12,16 @@ video → people, body points, objects → gaze → pointing → who looks at wh
 
 | Path | What |
 |---|---|
-| `base/` | The pipeline code. Start with `base/README.md` |
+| `RUNNING.md` | How to set up and run everything |
+| `base/` | The pipeline code. Code level details in `base/README.md` |
 | `demo/` | Demo handout (`summary.pdf`) and meeting guide |
 | `notes/` | Project overview, pipeline design and test results, paper summaries, open questions, training plan |
 | `papers/` | Papers the design draws on |
 | `literature_tracking.md` | Literature and dataset review |
 
 ## Quick start
+
+Full instructions for every command, outputs and troubleshooting are in **[RUNNING.md](RUNNING.md)**.
 
 ```bash
 cd base
