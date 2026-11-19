@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Joint Attention Base Demo</title>
+<style>
+  @page { size: Letter; margin: 0.45in 0.5in; }
+  :root { --ink:#1d2433; --muted:#5b6475; --line:#d9dee7; --accent:#2f6fd6; --soft:#f3f6fb; }
+  * { box-sizing: border-box; }
+  html { zoom: 0.84; }
+  body { font-family: "Inter", "Helvetica Neue", Arial, sans-serif; color: var(--ink); background:#fff; font-size: 10.2pt; line-height: 1.38; margin: 0; }
+  h1 { font-size: 18pt; margin: 0 0 2px; }
+  .sub { color: var(--muted); margin-bottom: 10px; }
+  h2 { font-size: 11pt; text-transform: uppercase; letter-spacing: .06em; color: var(--accent); margin: 14px 0 6px; border-bottom: 1px solid var(--line); padding-bottom: 3px; }
+  .flow { display:flex; align-items:stretch; gap:4px; margin: 6px 0 4px; }
+  .step { flex:1; background: var(--soft); border:1px solid var(--line); border-radius:6px; padding:6px 7px; font-size: 8.6pt; }
+  .step b { display:block; font-size: 9.2pt; margin-bottom: 2px; }
+  .step.research { background:#fff; border:1.5px dashed #b0b7c4; color: var(--muted); }
+  .arrow { align-self:center; color:#9aa3b2; font-size: 12pt; }
+  table { width:100%; border-collapse: collapse; font-size: 8.9pt; }
+  th, td { text-align:left; padding: 3px 6px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--soft); }
+  .two { display:grid; grid-template-columns: 1.05fr 1fr; gap: 12px; align-items:start; }
+  img { width:100%; border:1px solid var(--line); border-radius:4px; }
+  .cap { font-size: 8.2pt; color: var(--muted); margin-top: 3px; }
+  ul { margin: 4px 0; padding-left: 16px; }
+  li { margin: 2px 0; }
+  .foot { margin-top: 10px; font-size: 7.8pt; color: var(--muted); border-top:1px solid var(--line); padding-top: 4px; }
+  .page2 { page-break-before: always; }
+</style>
+</head>
+<body>
+
+<h1>Joint attention base pipeline, working demo</h1>
+<div class="sub">Lakshya Gupta, November 2026. One camera. Everything left of the research box runs today.</div>
+
+<div class="flow">
+  <div class="step"><b>1. Perception</b>People, 17 body points, face box, objects. YOLO11 pose, YOLO-World</div>
+  <div class="arrow">›</div>
+  <div class="step"><b>2a. Gaze</b>Where each person looks. Gaze LLE heatmap, then which face or object it lands on</div>
+  <div class="arrow">›</div>
+  <div class="step"><b>2b. Gesture</b>Arm pointing and what it points at. Rules on body points</div>
+  <div class="arrow">›</div>
+  <div class="step"><b>Scene graph</b>Who looks at whom matrix, labelled Single, Mutual or Share (GazeTransformer)</div>
+  <div class="arrow">›</div>
+  <div class="step"><b>3. Temporal flow</b>Stable timed segments per person</div>
+  <div class="arrow">›</div>
+  <div class="step research"><b>RJA / IJA</b>Research layer, not built</div>
+</div>
+
+<h2>Demo clip result</h2>
+<div class="two">
+  <div>
+    <img src="assets/frames.jpg" alt="Four annotated frames">
+    <div class="cap">CDC milestone clip, 18 months, "points to show someone what he wants" (12 s, public domain). Top left, Mutual gaze between adult and child. Top right, pointing detected (pink). Bottom left, child looks at the toy. Bottom right, two children Share attention on the toy.</div>
+  </div>
+  <div>
+    <img src="assets/timeline.png" alt="Timeline chart">
+    <div class="cap">Output timeline. Every bar is a timed segment the research layer can read.</div>
+    <ul>
+      <li>Mutual gaze, child and adult, at 2.2 s</li>
+      <li>Child points twice, at 6.2 s and 7.6 s</li>
+      <li>Child looks at the toy from 8.2 s to 10.3 s</li>
+      <li>Share on the toy at 9.7 s</li>
+      <li>Runs at about 3 s of compute per second of video on a laptop RTX 4070</li>
+    </ul>
+  </div>
+</div>
+
+<h2>What each part is built on</h2>
+<table>
+  <tr><th>Stage</th><th>Model or method</th><th>Source</th><th>Trained by us</th></tr>
+  <tr><td>People and body points</td><td>YOLO11n pose with ByteTrack tracking</td><td>Ultralytics, pretrained on COCO</td><td>No</td></tr>
+  <tr><td>Objects</td><td>YOLO-World v2 large, open vocabulary (toy, ball, book, doll...)</td><td>Ultralytics, pretrained</td><td>No</td></tr>
+  <tr><td>Gaze</td><td>Gaze LLE (frozen DINOv2 ViT B/14 with in or out of frame score)</td><td>Ryan et al., CVPR 2025</td><td>No</td></tr>
+  <tr><td>Gaze target rule</td><td>Gaze point inside a face box means looking at that person</td><td>AGT, Deng et al., AAAI 2026</td><td>Rule</td></tr>
+  <tr><td>Pointing</td><td>Straight, raised arm, ray from elbow through wrist</td><td>Our rule</td><td>Rule</td></tr>
+  <tr><td>Single, Mutual, Share</td><td>Adjacency matrix labels</td><td>GazeTransformer, de Belen et al., 2023</td><td>Rule</td></tr>
+</table>
+
+<h2>Known limits</h2>
+<ul>
+  <li><b>Gaze is adult trained.</b> AGT reports Gaze LLE at F1 0.49 on autistic children off the shelf and 0.67 fine tuned. Child data is needed.</li>
+  <li><b>Toys are hard.</b> Plain YOLO missed the toy entirely. YOLO-World finds it, but at low confidence and with false hits (a wall photo tagged as a toy). Fine tuning on the clinic's own toys would fix this.</li>
+  <li><b>Child vs adult is guessed by body size.</b> It breaks with two children in frame (bottom right frame). Fixed ids or a face based classifier would help.</li>
+  <li><b>Pointing is arm level only.</b> No hand model yet, so index finger pointing, showing and giving are not seen.</li>
+  <li><b>Tested on one public clip</b>, not on a clinical session. One camera only.</li>
+</ul>
+
+<h2>Next steps and asks</h2>
+<ul>
+  <li>Datasets from W, plus one real session video to test on</li>
+  <li>Request AGT dataset access (UT Dallas, IRB gated), the only autism gaze target set found</li>
+  <li>Review Kosmydel et al. 2026 (arXiv 2604.27105), dual camera joint attention with Gaze LLE, as a baseline</li>
+  <li>Agree on how the research layer should define RJA and IJA events on top of these segments</li>
+</ul>
+
+<div class="foot">Demo video, CDC "Learn the Signs. Act Early." milestone clip, public domain, via Wikimedia Commons. Code in base/, run with base/demo.sh VIDEO.</div>
+</body>
+</html>

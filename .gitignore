@@ -1,0 +1,12 @@
+# Research data, never commit (privacy, data use terms)
+datasets/
+
+# Personal, kept local only
+CLAUDE.md
+professor_email_draft.md
+notes/session-log.md
+*.bak
+
+# Tool and editor clutter
+__pycache__/
+.DS_Store

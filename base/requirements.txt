@@ -1,0 +1,6 @@
+ultralytics
+opencv-python
+numpy
+timm
+scikit-learn
+clip @ git+https://github.com/ultralytics/CLIP.git
